@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>net.radai.jaxrsdemo</groupId>
+        <artifactId>parent</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>impl-war</artifactId>
+    <packaging>war</packaging>
+    
+    <build>
+        <plugins>
+            
+            <!-- download swagger-ui distribution -->
+            <plugin>
+                <groupId>com.googlecode.maven-download-plugin</groupId>
+                <artifactId>download-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>download-swagger-ui</id>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <url>https://github.com/swagger-api/swagger-ui/archive/v${swagger-ui.version}.tar.gz</url>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <unpack>true</unpack>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <!-- copy out the part of the distribution we actually need -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-swagger-ui-dist</id>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <resources>
+                                <resource>
+                                    <directory>${project.build.directory}/swagger-ui-${swagger-ui.version}/dist</directory>
+                                    <excludes>
+                                        <exclude>index.html</exclude>
+                                    </excludes>
+                                </resource>
+                            </resources>
+                            <outputDirectory>${project.build.directory}/generated-resources/swagger-ui</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- configure the war plugin to pick up the swagger-ui dist -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <webResources>
+                        <resource>
+                            <directory>${project.build.directory}/generated-resources/swagger-ui</directory>
+                        </resource>
+                    </webResources>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    
+    <dependencies>
+        
+        <!-- inter module -->
+        
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>rest-impl</artifactId>
+        </dependency>
+        
+        <!-- resteasy runtime -->
+        
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-jaxrs</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-jaxb-provider</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <!-- required for auto scanning -->
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-servlet-initializer</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        
+        <!-- logging (log4j2) -->
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-web</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-1.2-api</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-jcl</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        
+        <!-- metrics -->
+
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_hotspot</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_log4j2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_servlet</artifactId>
+        </dependency>
+        
+        <!-- swagger initializer -->
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-jaxrs2-servlet-initializer</artifactId>
+            <version>${swagger.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        
+        <!-- jmx console -->
+        
+        <!--<dependency>-->
+            <!--<groupId>org.jminix</groupId>-->
+            <!--<artifactId>jminix</artifactId>-->
+            <!--<version>1.2.0</version>-->
+            <!--<exclusions>-->
+                <!--&lt;!&ndash; we redirect this to log4j2 &ndash;&gt;-->
+                <!--<exclusion>-->
+                    <!--<groupId>commons-logging</groupId>-->
+                    <!--<artifactId>commons-logging</artifactId>-->
+                <!--</exclusion>-->
+            <!--</exclusions>-->
+        <!--</dependency>-->
+        
+        <!-- servlet spec (mostly so that code is available for the debugger) -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>4.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+    
+</project>
